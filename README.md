@@ -5,6 +5,13 @@
 
 ## 사용법
 
+- 키보드 `1`, `2`, `3`, `4`번을 눌러 보기를 선택할 수 있습니다.
+- 키보드 `E`를 눌러 뒤로 갈 수 있습니다.
+- 키보드 `R`을 눌러 채점하고, 다시 눌러 다음 문제로 갈 수 있습니다.
+  - 속성암기 모드일 때는 한 번만 누르면 다음 문제로 갑니다.
+
+## 설치하는 법
+
 1. Tampermonkey 확장을 설치
    - [이 링크](https://chromewebstore.google.com/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo?hl=ko)에서 설치하실 수 있습니다.
 2. 확장 프로그램 개발자 모드 ON

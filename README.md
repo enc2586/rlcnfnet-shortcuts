@@ -12,6 +12,8 @@
 
 ## 설치하는 법
 
+> 이 프로그램은 UserScript입니다. Tampermonkey나 이에 준하는 UserScript 확장을 설치해야만 사용할 수 있습니다.
+
 1. Tampermonkey 확장을 설치
    - [이 링크](https://chromewebstore.google.com/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo?hl=ko)에서 설치하실 수 있습니다.
 2. 확장 프로그램 개발자 모드 ON

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         기출넷 속성암기 단축키
 // @namespace    http://tampermonkey.net/
-// @version      1.0
+// @version      1.1
 // @description  기출넷(rlcnf.net)에서 속성암기 기능 이용 시 단축키를 사용할 수 있게 해주는 스크립트입니다.
 // @author       enc2586, Google Gemini
 // @match        https://rlcnf.net/bbs/board.php?bo_table=*
@@ -66,12 +66,12 @@
 
     const nIcon = document.createElement("span");
     nIcon.className = "kb-icon";
-    nIcon.textContent = "N";
+    nIcon.textContent = "R";
     nextButton.append(nIcon);
 
     const bIcon = document.createElement("span");
     bIcon.className = "kb-icon";
-    bIcon.textContent = "B";
+    bIcon.textContent = "E";
 
     const prevButton = document.createElement("span");
     prevButton.id = "prev-problem-btn";
@@ -108,8 +108,8 @@
 
   console.log(`
 키보드 단축키가 로드되었습니다:
-- N: 다음문제
-- B: 이전문제
+- R: 다음문제
+- E: 이전문제
     `);
 
   function isInInputField() {
@@ -152,9 +152,9 @@
     let actionTaken = false;
 
     switch (event.key) {
-      case "n":
-      case "N":
-      case "ㅜ":
+      case "r":
+      case "R":
+      case "ㄱ":
         if (currentTime - lastClickTime < CLICK_COOLDOWN) break;
         const scoringButton = document.querySelector("#scoring");
         if (!scoringButton) {
@@ -168,9 +168,9 @@
         actionTaken = true;
         break;
 
-      case "b":
-      case "B":
-      case "ㅠ":
+      case "e":
+      case "E":
+      case "ㄷ":
         if (currentTime - lastBackTime < BACK_COOLDOWN) break;
         window.history.back();
         lastBackTime = currentTime;

@@ -17,8 +17,8 @@
 1. Tampermonkey 확장을 설치
    - [이 링크](https://chromewebstore.google.com/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo?hl=ko)에서 설치하실 수 있습니다.
 2. 확장 프로그램 개발자 모드 ON
-   - Chrome은 [이 링크](chrome://extensions/)에서
-   - Edge는 [이 링크](edge://extensions/)에서
+   - Chrome은 주소창에 `chrome://extensions/` 입력하고
+   - Edge는 주소창에 `edge://extensions/` 입력하고
    - "개발자 모드" 스위치를 켜주시면 됩니다.
      - [왜 켜야 하나요?(영문)](https://www.tampermonkey.net/faq.php?locale=en#Q209)
 3. 이 스크립트 설치

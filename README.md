@@ -20,7 +20,7 @@
    - Chrome은 [이 링크](chrome://extensions/)에서
    - Edge는 [이 링크](edge://extensions/)에서
    - "개발자 모드" 스위치를 켜주시면 됩니다.
-   - [왜 켜야 하나요?(영문)](https://www.tampermonkey.net/faq.php?locale=en#Q209)
+     - [왜 켜야 하나요?(영문)](https://www.tampermonkey.net/faq.php?locale=en#Q209)
 3. 이 스크립트 설치
    - [이 링크](https://greasyfork.org/en/scripts/549136-%EA%B8%B0%EC%B6%9C%EB%84%B7-%EC%86%8D%EC%84%B1%EC%95%94%EA%B8%B0-%EB%8B%A8%EC%B6%95%ED%82%A4)에서 `Install this script` 버튼 클릭
 4. 설치 완료!

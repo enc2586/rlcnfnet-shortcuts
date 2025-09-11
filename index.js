@@ -92,7 +92,7 @@
     prevButton.style.setProperty("border", "none", "important");
     prevButton.style.setProperty("opacity", "1", "important");
 
-    prevButton.textContent = "이전문제";
+    prevButton.textContent = "뒤로가기";
     prevButton.append(bIcon);
 
     prevButton.addEventListener("click", () => {
@@ -109,7 +109,7 @@
   console.log(`
 키보드 단축키가 로드되었습니다:
 - R: 다음문제
-- E: 이전문제
+- E: 뒤로가기
     `);
 
   function isInInputField() {

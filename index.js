@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         기출넷플러스
 // @namespace    http://tampermonkey.net/
-// @version      1.2.1
+// @version      1.2.3
 // @description  기출넷(rlcnf.net)에서 문제플이/속성암기 기능 이용 시 단축키와 편의기능을 사용할 수 있게 해주는 스크립트입니다.
 // @author       enc2586, Claude Code, Google Gemini
 // @match        https://rlcnf.net/bbs/board.php?bo_table=*
@@ -487,10 +487,17 @@
 
     setTimeout(() => {
       autoScrollToArticle();
-    }, 500);
+    }, 100);
 
     const observer = new MutationObserver(() => {
       checkAndClickExplanationButton();
+      // 좌우 나란히 보기가 활성화되어 있고 아직 적용되지 않았다면 다시 시도
+      if (
+        sideBySideEnabled &&
+        !document.querySelector(".side-by-side-container")
+      ) {
+        toggleSideBySideLayout();
+      }
     });
 
     observer.observe(document.body, {

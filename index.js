@@ -19,6 +19,7 @@
   let lastBackTime = 0;
   const CLICK_COOLDOWN = 500;
   const BACK_COOLDOWN = 1000;
+  let autoExplanationEnabled = true;
 
   const customCSS = `
         .kb-icon {
@@ -42,6 +43,56 @@
             justify-content: center;
             align-items: center;
             gap: 15px;
+        }
+        .auto-explanation-popup {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            padding: 12px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-size: 14px;
+            z-index: 10000;
+        }
+        .auto-explanation-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+        .toggle-switch {
+            position: relative;
+            width: 36px;
+            height: 20px;
+            background: #e5e7eb;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .toggle-switch.active {
+            background: #374151;
+        }
+        .toggle-slider {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 16px;
+            height: 16px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.2s;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        }
+        .toggle-switch.active .toggle-slider {
+            transform: translateX(16px);
+        }
+        .toggle-label {
+            color: #374151;
+            font-size: 13px;
+            font-weight: 500;
         }
     `;
 
@@ -104,6 +155,59 @@
     });
 
     container.insertBefore(prevButton, nextButton);
+  }
+
+  function checkAndClickExplanationButton() {
+    if (!autoExplanationEnabled) return;
+
+    const explanationButton = document.querySelector("#more-explanation-btn");
+    if (explanationButton && isElementVisible(explanationButton)) {
+      explanationButton.click();
+    }
+  }
+
+  function createTogglePopup() {
+    const popup = document.createElement("div");
+    popup.className = "auto-explanation-popup";
+    popup.innerHTML = `
+      <div class="auto-explanation-toggle">
+        <span class="toggle-label">자동 상세 풀이 보기</span>
+        <div class="toggle-switch ${
+          autoExplanationEnabled ? "active" : ""
+        }" id="explanation-toggle">
+          <div class="toggle-slider"></div>
+        </div>
+      </div>
+    `;
+
+    const toggleSwitch = popup.querySelector("#explanation-toggle");
+    toggleSwitch.addEventListener("click", () => {
+      autoExplanationEnabled = !autoExplanationEnabled;
+      toggleSwitch.classList.toggle("active", autoExplanationEnabled);
+      localStorage.setItem("autoExplanationEnabled", autoExplanationEnabled);
+    });
+
+    document.body.appendChild(popup);
+  }
+
+  function initAutoExplanation() {
+    const saved = localStorage.getItem("autoExplanationEnabled");
+    if (saved !== null) {
+      autoExplanationEnabled = saved === "true";
+    }
+
+    createTogglePopup();
+
+    const observer = new MutationObserver(() => {
+      checkAndClickExplanationButton();
+    });
+
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+    });
+
+    checkAndClickExplanationButton();
   }
 
   console.log(`
@@ -186,4 +290,5 @@
 
   addGlobalStyle(customCSS);
   setupUI();
+  initAutoExplanation();
 })();

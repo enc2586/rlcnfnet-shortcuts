@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         기출넷플러스
 // @namespace    http://tampermonkey.net/
-// @version      1.2
-// @description  기출넷(rlcnf.net)에서 속성암기 기능 이용 시 단축키를 사용할 수 있게 해주는 스크립트입니다.
+// @version      1.2.1
+// @description  기출넷(rlcnf.net)에서 문제플이/속성암기 기능 이용 시 단축키와 편의기능을 사용할 수 있게 해주는 스크립트입니다.
 // @author       enc2586, Claude Code, Google Gemini
 // @match        https://rlcnf.net/bbs/board.php?bo_table=*
 // @match        http://rlcnf.net/bbs/board.php?bo_table=*
@@ -10,6 +10,7 @@
 // @match        http://rlcnf.net/bbs/board.php*
 // @grant        none
 // @run-at       document-idle
+// @license      MIT
 // ==/UserScript==
 
 (function () {

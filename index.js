@@ -1,9 +1,9 @@
 // ==UserScript==
-// @name         기출넷 속성암기 단축키
+// @name         기출넷플러스
 // @namespace    http://tampermonkey.net/
-// @version      1.1
+// @version      1.2
 // @description  기출넷(rlcnf.net)에서 속성암기 기능 이용 시 단축키를 사용할 수 있게 해주는 스크립트입니다.
-// @author       enc2586, Google Gemini
+// @author       enc2586, Claude Code, Google Gemini
 // @match        https://rlcnf.net/bbs/board.php?bo_table=*
 // @match        http://rlcnf.net/bbs/board.php?bo_table=*
 // @match        https://rlcnf.net/bbs/board.php*
@@ -20,6 +20,8 @@
   const CLICK_COOLDOWN = 500;
   const BACK_COOLDOWN = 1000;
   let autoExplanationEnabled = true;
+  let sideBySideEnabled = false;
+  let autoScrollEnabled = true;
 
   const customCSS = `
         .kb-icon {
@@ -56,6 +58,38 @@
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             font-size: 14px;
             z-index: 10000;
+            width: 80px;
+            max-height: 40px;
+            overflow: hidden;
+            transition: width 0.3s ease-out, max-height 0.3s ease-out;
+        }
+        #go-btn {
+            bottom: 70px !important;
+        }
+        .auto-explanation-popup:hover {
+            width: 220px;
+            max-height: 300px;
+        }
+        .popup-tab {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px;
+            margin: -12px -12px 8px -12px;
+            background: #f8fafc;
+            border-radius: 8px 8px 0 0;
+            border-bottom: 1px solid #e2e8f0;
+            cursor: pointer;
+            position: relative;
+            z-index: 1;
+        }
+        .popup-tab-icon {
+            font-size: 16px;
+        }
+        .popup-tab-text {
+            font-size: 12px;
+            font-weight: 500;
+            color: #64748b;
         }
         .auto-explanation-toggle {
             display: flex;
@@ -93,6 +127,72 @@
             color: #374151;
             font-size: 13px;
             font-weight: 500;
+            white-space: nowrap;
+        }
+        .side-by-side-container {
+            display: flex !important;
+            align-items: flex-start;
+            position: relative;
+        }
+        .side-by-side-container .view-content {
+            flex: 0 0 30%;
+            min-width: 0;
+        }
+        .side-by-side-container #explanation-section-parents {
+            flex: 0 0 70%;
+            min-width: 0;
+            margin-top: 0 !important;
+        }
+        .resize-handle {
+            width: 8px;
+            background: #e5e7eb;
+            cursor: col-resize;
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: calc(30% - 4px);
+            z-index: 10;
+            opacity: 0;
+            transition: opacity 1s ease-out, background-color 0.2s;
+        }
+        .resize-handle.show {
+            opacity: 1;
+        }
+        .resize-handle:hover {
+            background: #9ca3af;
+            opacity: 1 !important;
+            transition: opacity 0.1s ease-in, background-color 0.2s;
+        }
+        .resize-handle::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 3px;
+            height: 30px;
+            background: #6b7280;
+            border-radius: 2px;
+        }
+        .side-by-side-enabled .col-md-offset-2 {
+            margin-left: 0 !important;
+        }
+        .side-by-side-enabled .col-md-8 {
+            width: 100% !important;
+        }
+        .toggle-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .toggle-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+        html {
+            scroll-behavior: smooth;
         }
     `;
 
@@ -166,37 +266,227 @@
     }
   }
 
+  function createResizeHandle() {
+    const handle = document.createElement("div");
+    handle.className = "resize-handle show";
+
+    let isResizing = false;
+    let startX = 0;
+    let startLeftPercent = 30;
+    let hideTimeout;
+
+    // 초기 표시 후 2초 뒤 숨김
+    setTimeout(() => {
+      handle.classList.remove("show");
+    }, 2000);
+
+    handle.addEventListener("mouseenter", () => {
+      clearTimeout(hideTimeout);
+      handle.classList.add("show");
+    });
+
+    handle.addEventListener("mouseleave", () => {
+      if (!isResizing) {
+        hideTimeout = setTimeout(() => {
+          handle.classList.remove("show");
+        }, 2000);
+      }
+    });
+
+    function updateHandlePosition(leftPercent) {
+      handle.style.left = `calc(${leftPercent}% - 4px)`;
+    }
+
+    handle.addEventListener("mousedown", (e) => {
+      isResizing = true;
+      startX = e.clientX;
+
+      const container = handle.parentElement;
+      const leftPanel = container.querySelector(".view-content");
+
+      const containerWidth = container.offsetWidth;
+      startLeftPercent = (leftPanel.offsetWidth / containerWidth) * 100;
+
+      document.addEventListener("mousemove", handleMouseMove);
+      document.addEventListener("mouseup", handleMouseUp);
+      document.body.style.cursor = "col-resize";
+      document.body.style.userSelect = "none";
+
+      e.preventDefault();
+    });
+
+    function handleMouseMove(e) {
+      if (!isResizing) return;
+
+      const container = handle.parentElement;
+      const leftPanel = container.querySelector(".view-content");
+      const rightPanel = container.querySelector(
+        "#explanation-section-parents"
+      );
+
+      const deltaX = e.clientX - startX;
+      const containerWidth = container.offsetWidth;
+      const deltaPercent = (deltaX / containerWidth) * 100;
+
+      const newLeftPercent = startLeftPercent + deltaPercent;
+      const newRightPercent = 100 - newLeftPercent;
+
+      // 최소 20%, 최대 80% 제한
+      if (newLeftPercent >= 20 && newLeftPercent <= 80) {
+        leftPanel.style.flex = `0 0 ${newLeftPercent}%`;
+        rightPanel.style.flex = `0 0 ${newRightPercent}%`;
+        updateHandlePosition(newLeftPercent);
+      }
+    }
+
+    function handleMouseUp() {
+      isResizing = false;
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+
+      // 드래그 완료 후 2초 뒤 숨김
+      hideTimeout = setTimeout(() => {
+        handle.classList.remove("show");
+      }, 2000);
+    }
+
+    return handle;
+  }
+
+  function toggleSideBySideLayout() {
+    const viewContent = document.querySelector(".view-content");
+    const explanationSection = document.querySelector(
+      "#explanation-section-parents"
+    );
+    const body = document.body;
+
+    if (!viewContent || !explanationSection) return;
+
+    let container = document.querySelector(".side-by-side-container");
+
+    if (sideBySideEnabled) {
+      if (!container) {
+        container = document.createElement("div");
+        container.className = "side-by-side-container";
+
+        const parent = viewContent.parentNode;
+        parent.insertBefore(container, viewContent);
+
+        container.appendChild(viewContent);
+        container.appendChild(explanationSection);
+
+        const resizeHandle = createResizeHandle();
+        container.appendChild(resizeHandle);
+      }
+      body.classList.add("side-by-side-enabled");
+    } else {
+      if (container) {
+        const parent = container.parentNode;
+        parent.insertBefore(viewContent, container);
+        parent.insertBefore(explanationSection, container);
+        container.remove();
+      }
+      body.classList.remove("side-by-side-enabled");
+    }
+  }
+
+  function autoScrollToArticle() {
+    if (!autoScrollEnabled) return;
+
+    const urlParams = new URLSearchParams(window.location.search);
+    if (!urlParams.has("wr_id")) return;
+
+    const article = document.querySelector("article.exam");
+    if (article) {
+      article.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }
+
   function createTogglePopup() {
     const popup = document.createElement("div");
     popup.className = "auto-explanation-popup";
     popup.innerHTML = `
-      <div class="auto-explanation-toggle">
-        <span class="toggle-label">자동 상세 풀이 보기</span>
-        <div class="toggle-switch ${
-          autoExplanationEnabled ? "active" : ""
-        }" id="explanation-toggle">
-          <div class="toggle-slider"></div>
+      <div class="popup-tab">
+        <span class="popup-tab-icon">⚙️</span>
+        <span class="popup-tab-text">설정</span>
+      </div>
+      <div class="toggle-group">
+        <div class="toggle-item">
+          <span class="toggle-label">자동 상세 풀이 보기</span>
+          <div class="toggle-switch ${
+            autoExplanationEnabled ? "active" : ""
+          }" id="explanation-toggle">
+            <div class="toggle-slider"></div>
+          </div>
+        </div>
+        <div class="toggle-item">
+          <span class="toggle-label">좌우 나란히 보기</span>
+          <div class="toggle-switch ${
+            sideBySideEnabled ? "active" : ""
+          }" id="sidebyside-toggle">
+            <div class="toggle-slider"></div>
+          </div>
+        </div>
+        <div class="toggle-item">
+          <span class="toggle-label">문제 영역으로 자동 스크롤</span>
+          <div class="toggle-switch ${
+            autoScrollEnabled ? "active" : ""
+          }" id="autoscroll-toggle">
+            <div class="toggle-slider"></div>
+          </div>
         </div>
       </div>
     `;
 
-    const toggleSwitch = popup.querySelector("#explanation-toggle");
-    toggleSwitch.addEventListener("click", () => {
+    const explanationToggle = popup.querySelector("#explanation-toggle");
+    explanationToggle.addEventListener("click", () => {
       autoExplanationEnabled = !autoExplanationEnabled;
-      toggleSwitch.classList.toggle("active", autoExplanationEnabled);
+      explanationToggle.classList.toggle("active", autoExplanationEnabled);
       localStorage.setItem("autoExplanationEnabled", autoExplanationEnabled);
+    });
+
+    const sideBySideToggle = popup.querySelector("#sidebyside-toggle");
+    sideBySideToggle.addEventListener("click", () => {
+      sideBySideEnabled = !sideBySideEnabled;
+      sideBySideToggle.classList.toggle("active", sideBySideEnabled);
+      localStorage.setItem("sideBySideEnabled", sideBySideEnabled);
+      toggleSideBySideLayout();
+    });
+
+    const autoScrollToggle = popup.querySelector("#autoscroll-toggle");
+    autoScrollToggle.addEventListener("click", () => {
+      autoScrollEnabled = !autoScrollEnabled;
+      autoScrollToggle.classList.toggle("active", autoScrollEnabled);
+      localStorage.setItem("autoScrollEnabled", autoScrollEnabled);
     });
 
     document.body.appendChild(popup);
   }
 
   function initAutoExplanation() {
-    const saved = localStorage.getItem("autoExplanationEnabled");
-    if (saved !== null) {
-      autoExplanationEnabled = saved === "true";
+    const savedExplanation = localStorage.getItem("autoExplanationEnabled");
+    if (savedExplanation !== null) {
+      autoExplanationEnabled = savedExplanation === "true";
+    }
+
+    const savedSideBySide = localStorage.getItem("sideBySideEnabled");
+    if (savedSideBySide !== null) {
+      sideBySideEnabled = savedSideBySide === "true";
+    }
+
+    const savedAutoScroll = localStorage.getItem("autoScrollEnabled");
+    if (savedAutoScroll !== null) {
+      autoScrollEnabled = savedAutoScroll === "true";
     }
 
     createTogglePopup();
+    toggleSideBySideLayout();
+
+    setTimeout(() => {
+      autoScrollToArticle();
+    }, 500);
 
     const observer = new MutationObserver(() => {
       checkAndClickExplanationButton();
